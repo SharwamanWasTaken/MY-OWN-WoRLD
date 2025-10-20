@@ -1,0 +1,15 @@
+name: ScreenSharePlugin
+main: com.example.screenshare.ScreensharePlugin
+version: 1.0.0
+api-version: 1.16
+commands:
+  screenshare:
+    description: Start a screenshare for a player
+    usage: /screenshare <player>
+permissions:
+  screenshare.use:
+    description: Allows staff to start a screenshare
+    default: op
+  screenshare.notify:
+    description: Receive screenshare notifications (leave/ban)
+    default: op
