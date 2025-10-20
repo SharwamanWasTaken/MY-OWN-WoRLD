@@ -1,0 +1,65 @@
+package com.example.screenshare;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+public class ScreenshareSession {
+    private final ScreensharePlugin plugin;
+    private final UUID targetUuid;
+    private final Location originalLocation;
+    private final Set<UUID> staff = new HashSet<>();
+    private volatile boolean ended = false;
+
+    public ScreenshareSession(ScreensharePlugin plugin, UUID targetUuid, Location originalLocation) {
+        this.plugin = plugin;
+        this.targetUuid = targetUuid;
+        this.originalLocation = originalLocation;
+    }
+
+    public void addStaff(Player staffPlayer) {
+        if (staffPlayer != null) staff.add(staffPlayer.getUniqueId());
+    }
+
+    public Player getTargetPlayer() {
+        return Bukkit.getPlayer(targetUuid);
+    }
+
+    public Location getOriginalLocation() {
+        return originalLocation;
+    }
+
+    public boolean isEnded() {
+        return ended;
+    }
+
+    public void setEnded(boolean val) {
+        this.ended = val;
+    }
+
+    public void endSession(String reason) {
+        if (ended) return;
+        ended = true;
+        Player target = getTargetPlayer();
+        if (target != null && target.isOnline()) {
+            if (plugin.isRestoreOnEnd()) {
+                target.teleport(originalLocation);
+                target.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aScreenshare ended: " + reason));
+            } else {
+                target.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aScreenshare ended: " + reason));
+            }
+        }
+        // Notify staff
+        for (UUID u : staff) {
+            Player p = Bukkit.getPlayer(u);
+            if (p != null && p.isOnline()) {
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&eScreenshare ended: " + reason));
+            }
+        }
+    }
+}
