@@ -1,0 +1,88 @@
+package com.example.screenshare;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public class ScreenshareCommand implements CommandExecutor {
+    private final ScreensharePlugin plugin;
+
+    public ScreenshareCommand(ScreensharePlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    private void msg(CommandSender s, String text) {
+        s.sendMessage(ChatColor.translateAlternateColorCodes('&', text));
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!sender.hasPermission("screenshare.use")) {
+            msg(sender, "&cYou don't have permission to use that.");
+            return true;
+        }
+
+        if (args.length < 1) {
+            msg(sender, "&eUsage: /screenshare <player>");
+            return true;
+        }
+
+        String targetName = args[0];
+        Player target = Bukkit.getPlayerExact(targetName);
+        if (target == null) {
+            // allow offline check to show message
+            OfflinePlayer off = Bukkit.getOfflinePlayer(targetName);
+            if (off == null || !off.hasPlayedBefore()) {
+                msg(sender, "&cPlayer not found: " + targetName);
+                return true;
+            } else {
+                msg(sender, "&cThat player is offline.");
+                return true;
+            }
+        }
+
+        UUID targetUUID = target.getUniqueId();
+
+        // check if already in session
+        if (plugin.getActiveSessions().containsKey(targetUUID)) {
+            msg(sender, "&cThat player is already in a screenshare.");
+            return true;
+        }
+
+        // start a session
+        Location original = target.getLocation().clone();
+        Location room = plugin.getRoomLocation();
+        Location obs = plugin.getObserverLocation();
+
+        ScreenshareSession session = new ScreenshareSession(plugin, targetUUID, original);
+        session.addStaff((sender instanceof Player) ? (Player) sender : null);
+        plugin.getActiveSessions().put(targetUUID, session);
+
+        // Teleport target
+        target.teleport(room);
+        target.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou were put into a screenshare by staff. Do not disconnect."));
+
+        // Teleport staff (sender) if player
+        if (sender instanceof Player) {
+            Player staff = (Player) sender;
+            if (obs != null && staff.isOnline()) {
+                staff.teleport(obs);
+                staff.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aYou joined the screenshare room."));
+            }
+        }
+
+        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', "&6[ScreenShare] &e" + target.getName() + " has been screenshared by " + sender.getName()));
+
+        return true;
+    }
+}
