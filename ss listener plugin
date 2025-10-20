@@ -1,0 +1,51 @@
+package com.example.screenshare;
+
+import org.bukkit.BanList;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.entity.Player;
+
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+public class ScreenshareListener implements Listener {
+
+    private final ScreensharePlugin plugin;
+
+    public ScreenshareListener(ScreensharePlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        Player p = event.getPlayer();
+        ScreenshareSession session = plugin.getActiveSessions().get(p.getUniqueId());
+        if (session != null && !session.isEnded()) {
+            // Player left during active screenshare -> temp ban
+            long mins = plugin.getTempBanMinutes();
+            Date expires = new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(mins));
+            String reason = plugin.getBanReason();
+
+            Bukkit.getBanList(BanList.Type.NAME).addBan(p.getName(), reason, expires, "ScreensharePlugin");
+            // Optionally log
+            Bukkit.getLogger().info("ScreensharePlugin: Temp-banned " + p.getName() + " for leaving during a screenshare. Expires: " + expires);
+
+            // Remove session since target left (it's ended via ban)
+            session.setEnded(true);
+            plugin.getActiveSessions().remove(p.getUniqueId());
+
+            // Announce to staff/console
+            Bukkit.broadcast(ChatColor.translateAlternateColorCodes('&', "&c[ScreenShare] " + p.getName() + " left during screenshare and was temp-banned for " + mins + " minutes."), "screenshare.notify");
+        }
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        // If someone rejoins who was banned they won't be allowed; nothing to do.
+        // Optionally restore if the session still exists (rare). No auto-unban here.
+    }
+}
