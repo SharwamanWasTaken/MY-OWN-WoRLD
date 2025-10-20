@@ -1,0 +1,89 @@
+package com.example.screenshare;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public final class ScreensharePlugin extends JavaPlugin {
+
+    // activeSessions: targetUUID -> session
+    private final ConcurrentHashMap<UUID, ScreenshareSession> activeSessions = new ConcurrentHashMap<>();
+    private Location roomLocation;
+    private Location observerLocation;
+    private long tempBanMinutes;
+    private String banReason;
+    private boolean restoreOnEnd;
+
+    @Override
+    public void onEnable() {
+        saveDefaultConfig();
+        loadConfig();
+
+        // register command and listener
+        this.getCommand("screenshare").setExecutor(new ScreenshareCommand(this));
+        Bukkit.getPluginManager().registerEvents(new ScreenshareListener(this), this);
+
+        getLogger().info("ScreensharePlugin enabled");
+    }
+
+    @Override
+    public void onDisable() {
+        // Cleanup: try to restore players still in sessions (best-effort)
+        activeSessions.values().forEach(session -> {
+            if (session.getTargetPlayer() != null && session.getTargetPlayer().isOnline()) {
+                session.endSession("Server shutting down - session ended by server.");
+            }
+        });
+        getLogger().info("ScreensharePlugin disabled");
+    }
+
+    public void loadConfig() {
+        // load room location (world,x,y,z,yaw,pitch)
+        String world = getConfig().getString("room.world", "world");
+        double x = getConfig().getDouble("room.x", 0.0);
+        double y = getConfig().getDouble("room.y", 64.0);
+        double z = getConfig().getDouble("room.z", 0.0);
+        float yaw = (float) getConfig().getDouble("room.yaw", 0.0);
+        float pitch = (float) getConfig().getDouble("room.pitch", 0.0);
+        this.roomLocation = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
+
+        String oWorld = getConfig().getString("observer.world", world);
+        double ox = getConfig().getDouble("observer.x", x);
+        double oy = getConfig().getDouble("observer.y", y + 2);
+        double oz = getConfig().getDouble("observer.z", z);
+        float oyaw = (float) getConfig().getDouble("observer.yaw", 0.0);
+        float opitch = (float) getConfig().getDouble("observer.pitch", 0.0);
+        this.observerLocation = new Location(Bukkit.getWorld(oWorld), ox, oy, oz, oyaw, opitch);
+
+        this.tempBanMinutes = getConfig().getLong("tempBanMinutes", 60);
+        this.banReason = getConfig().getString("banReason", "Left during a screenshare (temp ban).");
+        this.restoreOnEnd = getConfig().getBoolean("restoreLocationOnEnd", true);
+    }
+
+    public ConcurrentHashMap<UUID, ScreenshareSession> getActiveSessions() {
+        return activeSessions;
+    }
+
+    public Location getRoomLocation() {
+        return roomLocation;
+    }
+
+    public Location getObserverLocation() {
+        return observerLocation;
+    }
+
+    public long getTempBanMinutes() {
+        return tempBanMinutes;
+    }
+
+    public String getBanReason() {
+        return banReason;
+    }
+
+    public boolean isRestoreOnEnd() {
+        return restoreOnEnd;
+    }
+}
