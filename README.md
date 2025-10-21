@@ -1,41 +1,40 @@
 # 🌍 MY-OWN-WORLD
 ### *"Shawarma owns every food 😋"*
 
-![GitHub Repo Banner](https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif)
+
+# 👋 Hey, I'm **SharwamanWasTaken**
+
+💻 **Minecraft & Software Developer**  
+🚀 Coding since **age 13** | 4+ years of **Minecraft PvP plugin** experience  
 
 ---
 
-## 🎮 About Me
-Hi! I’m **SharwamanWasTaken**, a professional Minecraft developer focused on **PvP systems**, **custom gameplay features**, and **server optimization**.
-
-- 🧠 Languages & Tools: **Java (Spigot/Paper API), Skript, Git**
-- ⚔️ Focus: Custom PvP mechanics, kits, event systems
-- 🛠️ Skills: Plugin development, performance optimization, debugging
-- 📫 Open to collaborations with **Minecraft servers**
+## 🧠 About Me  
+I started coding when I was 13 — learned my first lines of code from my cousin sister, and never stopped since.  
+While Minecraft development is my main playground, I also enjoy experimenting with new technologies, performance tuning, and backend logic design.  
 
 ---
 
-## 🏗️ Projects
+## ⚙️ Tech Stack  
+- **Languages:** Java, Python, JavaScript, Skript  
+- **Frameworks & APIs:** Spigot, Paper, Bukkit  
+- **Tools:** IntelliJ IDEA, Git, Maven  
+- **Other:** Linux servers, JSON configs, plugin performance profiling  
 
-### 🔹 Heal Command Plugin (Java)
-A simple plugin to add `/heal` command functionality for players.
+---
 
-```java
-package me.sharwaman.pvp;
+## 🧩 Featured Projects  
+### 🔹 Custom PvP Core  
+A modular combat system with kits, cooldowns, and ranked fights.  
 
-import org.bukkit.plugin.java.JavaPlugin;
+### 🔹 Event Engine  
+Automates server-wide PvP and minigame events with reward tracking.  
 
-public class Main extends JavaPlugin {
-    @Override
-    public void onEnable() {
-        getLogger().info("Heal Command Plugin Enabled!");
-        getCommand("heal").setExecutor((sender, cmd, label, args) -> {
-            if (sender instanceof org.bukkit.entity.Player player) {
-                player.setHealth(20);
-                player.sendMessage("§aYou have been healed!");
-            }
-            return true;
-        });
-    }
-}
+### 🔹 AdminTools+  
+Custom moderation plugin with teleport, mute, heal, and freeze commands.  
+
+---
+
+## 🌍 Connect With Me  
+[💬 Discord](#) • [📧 Email](#) • [🐙 GitHub](https://github.com/SharwamanWasTaken)
 
